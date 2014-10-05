@@ -1,0 +1,372 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width">
+	<title>Medal Totals</title>
+	<link rel="stylesheet" href="css/site.css">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+</head>
+
+<body>
+	<article class="graphic-article">
+		<div class="graphic-container">
+			<div id="chart"> 
+				<span class="graphic-dek">Against All Odds</span>
+				<span class="graphic-copy">The scatterplot below shows the countries that over- or underperformed the Graettingers' model by at least three total medals during the 2006 and 2010 Olympics combined. Hover over each point to see the country's name and how far it deviated from the Graettingers' predictions.</span>
+			</div>
+			<span class="sources-copy">SOURCES: CIA World Factbook, Wikipedia</span>
+		</div>
+
+		<!-- D3 LAYOUT -->
+		<script type="text/javascript">
+
+			// Globals
+			var x, labels, axisLabels;
+
+			// Config
+			var dotRadius = 5;
+			var bigDotRadius = 7;
+			var margin = {top: 20, right: 20, bottom: 30, left: 30};
+			var width = parseInt(d3.select('#chart').style('width'), 10);
+			var height = 480 - margin.top - margin.bottom;
+
+			// Accessor functions 
+			var nation = function(d) { return d['Nation']; };
+			var predicted = function(d) { return d['Predicted']; };
+			var actual = function(d) { return d['Actual']; };
+			var difference = function(d) { return d['Diff']; };
+
+			// Conditional functions
+			function moveModelLabels() {        
+			    if (width <= 400) {return 80}
+					else { return 60 }; 
+			}
+			
+			// Scale
+			var x = d3.scale.linear()
+				.range([0, width - margin.left - margin.right]);
+
+			var y = d3.scale.linear()
+				.range([height, 0]);
+
+			// Axes
+			function make_x_axis() {        
+			    return d3.svg.axis()
+			        .scale(x)
+			        .orient("bottom")
+			        .ticks(6)
+			}
+
+			function make_y_axis() {        
+			    return d3.svg.axis()
+			        .scale(y)
+			        .orient("left")
+			        .ticks(6)
+			}
+
+
+
+			// Chart
+			var svg = d3.select("#chart").append("svg")
+				.attr("width", width)
+				.attr("height", height + margin.top + margin.bottom)
+			  .append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+			// DAT DATA
+			d3.tsv("outliers.tsv", function(error, data) {
+				  data.forEach(function(d) {
+					d.Actual = +d.Actual;
+					d.Predicted = +d.Predicted;
+			});
+
+		  	x.domain([0, 65]).nice();
+			y.domain(d3.extent(data, function(d) { return d.Actual; })).nice();
+
+
+			// Slope
+			var slopeRadians =  Math.atan2(height - y(50), x(50)),
+				slopeDegrees = (slopeRadians * 180 / Math.PI);
+
+
+			// Gridlines
+			var xGrid = svg.append("g")         
+	        .attr("class", "grid")
+	        .attr("transform", "translate(0," + height + ")")
+	        .call(make_x_axis()
+	            .tickSize(-height, 0, 0)
+	            .tickFormat("")
+	        )
+
+		    var yGrid = svg.append("g")         
+		        .attr("class", "grid")
+		        .call(make_y_axis()
+		            .tickSize(-width + margin.left + margin.right, 0, 0)
+		            .tickFormat("")
+		    )
+
+
+			// X-axis
+			var xAxisDrawn = svg.append("g")
+				  .attr("class", "x axis")
+				  .attr("transform", "translate(0," + height + ")")
+				  .call(make_x_axis())
+				
+			var xAxisLabel =	xAxisDrawn.append("text")
+				  .attr("class", "axis-label")
+				  .attr("x", width - margin.left - margin.right)
+				  .attr("y", -6)
+				  .style("text-anchor", "end")
+				  .text("Total Predicted Medals, '06 and '10");
+
+			// Y-axis
+			var yAxisDrawn = svg.append("g")
+				  .attr("class", "y axis")
+				  .call(make_y_axis())
+				.append("text")
+				  .attr("class", "axis-label")
+				  .attr("transform", "rotate(-90)")
+				  .attr("y", bigDotRadius)
+				  .attr("dy", ".71em")
+				  .style("text-anchor", "end")
+				  .text("Total Actual Medals, '06 and '10")
+
+
+
+			// Model
+			var model = svg.append("g")
+					.attr("class", "model-line-container");
+
+			var modelLine = model.append("line")
+				.attr({
+				  "class" : "model-line",
+				  "x1" : x(0),
+				  "x2" : x(65),
+				  "y1" : y(0),
+				  "y2" : y(65)
+			  })
+
+			var modelOver = model.append("text")
+				.attr({
+					"class" : "model-line-label over",
+			    "text-anchor" : "middle",
+					"x" : x(0),
+			    "y" : y(0),
+			    "transform" : "rotate(-" + slopeDegrees + ",0," + height + "), translate("+x(moveModelLabels())+", -7)"
+				})
+		    .text("Beat Expectations ▲");
+
+	    var modelUnder = model.append("text")
+		    .attr({
+		    	"class" : "model-line-label under",
+		    	"text-anchor" : "middle",
+		    	"x" : x(0),
+		    	"y" : y(0),
+		    	"transform" : "rotate(-" + slopeDegrees + ",0," + height + "), translate("+x(moveModelLabels())+", 15)"
+		    })
+		    .text("Wow So Shame ▼");
+
+
+
+			// Points
+			var dotContainer = svg.selectAll("g .dot-container")
+				 	.data(data)
+					.enter()
+				.append("g")
+					.attr("class", function(d) {          
+						if (d.Predicted <= d.Actual) {return "dot-container over"}
+						else { return "dot-container under" };        
+				  })
+					.attr("transform", function(d) { return "translate(" + x(0) + "," + y(0) + ")"; })
+
+			// Silly animate in transition
+			dotContainer.transition()
+					.delay(50)
+					.duration(600)
+					.attr("transform", function(d) { return "translate(" + x(d.Predicted) + "," + y(d.Actual) + ")"; });
+					
+					
+			dotContainer.on("mouseover", function(d) { 
+		  		// Dot transition   
+				  d3.select(this).select(".dot").transition()        
+							.duration(200)      
+							.attr("r", bigDotRadius) 
+
+					// Magnitude transition
+					d3.select(this).select(".magnitude").transition()
+							.duration(200)
+							.attr("y1", "0")
+
+					// Label transition
+					d3.select(this).select(".dot-label").transition()
+							.duration(200)
+							.style("opacity", 0); 
+
+					// Tooltip transition
+					div.transition()        
+							.duration(200)      
+							.style("opacity", 1);      
+					div .html(
+							"<span class='tooltip-title'>"+ nation(d) +"</span><br/>" +
+							"<span class='tooltip-param'>Predicted: "+ predicted(d) +" medals</span><br/>" +
+							"<span class='tooltip-param'>Actual: "+ actual(d) +" medals</span><br/>" +
+							"<span class='tooltip-param ital'>"+ difference(d) +" medal difference</span>"
+					)
+					.style("left", (d3.event.pageX + 10) + "px")     
+					.style("top", (d3.event.pageY - 20) + "px");  
+			})  
+
+			dotContainer.on("mouseout", function(d) {  
+					// Dot transition
+					d3.select(this).select(".dot").transition()        
+							.duration(500)      
+							.attr("r", dotRadius)  
+
+					// Magnitude transition
+					magnitude.transition()
+							.duration(200)
+							.attr("y1", function(d) { return -(y(d.Actual) - y(d.Predicted)) ;} )
+
+					// Label transition
+					d3.select(this).select(".dot-label").transition()
+							.duration(200)
+							.style("opacity", 1); 
+
+					// Tooltip transition    
+					div.transition()        
+							.duration(500)      
+							.style("opacity", 0);   
+			})
+
+			var magnitude = dotContainer.append("line")
+					.attr({
+						"class" : "magnitude",
+						"x1" : "0",
+					  "x2" : "0",
+					  "y1" : function(d) { return -(y(d.Actual) - y(d.Predicted)) ;},
+					  "y2" : function(d) { return -(y(d.Actual) - y(d.Predicted)) ;}
+					})
+
+			var dot = dotContainer.append("circle")
+				  .attr("r", dotRadius)
+				  .attr("class", "dot")
+
+			var dotLabels = dotContainer.append("text")
+					.attr("dy", "-.7em")
+					.attr("class", "dot-label")
+					.style("opacity", "0")
+					.text(function(d) { 
+						if (["U.S.","Russia","China","South Korea","U.K.","Germany","Austria"].indexOf(d.Nation) > -1) { return d.Nation; } 
+					});
+
+			// Silly label transition
+			dotLabels.transition()
+					.delay(50)
+					.duration(600)
+					.style("opacity", "1")
+
+			// Tooltipz
+			var div = d3.select("body").append("div")   
+				.attr("class", "tooltip")               
+				.style("opacity", 0);
+
+
+			// Resize
+			window.addEventListener("resize", debounce(function () {
+			    resize();
+			}, 250), false);
+
+
+
+			// Helper Functions	
+			function debounce(fn, wait) {
+			    var timeout;
+
+			    return function () {
+			        var context = this,              // preserve context
+			            args = arguments,            // preserve arguments
+			            later = function () {        // define a function that:
+			                timeout = null;          // * nulls the timeout (GC)
+			                fn.apply(context, args); // * calls the original fn
+			            };
+
+			        // (re)set the timer which delays the function call
+			        clearTimeout(timeout);
+			        timeout = setTimeout(later, wait);
+			    };
+			};
+
+			function resize() {
+
+				// Update width
+				width = parseInt(d3.select('#chart').style('width'), 10);
+
+				// Reset the range
+				x.range([0, width - margin.left - margin.right]);
+
+				// Update slope
+				var slopeRadians =  Math.atan2(height - y(50), x(50)),
+					slopeDegrees = (slopeRadians * 180 / Math.PI);
+
+				// Resize the chart
+				// d3.select(svg.node().parentNode)
+				svg.style('width', width);
+
+				// Redraw gridlines
+				xGrid.call(make_x_axis()
+		            .tickSize(-height, 0, 0)
+		            .tickFormat("")
+	            )
+			}
+
+	        yGrid.call(make_y_axis()
+	            .tickSize(-width + margin.left + margin.right, 0, 0)
+	            .tickFormat("")
+	        )
+
+    			// X-axis
+					xAxisDrawn.call(make_x_axis())
+						.append("text")
+						  
+					xAxisLabel.attr("x", width - margin.left - margin.right)
+
+					// Redraw the model
+    			modelLine.attr({
+					  "x2" : x(65),
+					  "y2" : y(65)
+				  })
+
+					modelOver.attr({
+				    "transform" : "rotate(-" + slopeDegrees + ",0," + height + "), translate("+x(moveModelLabels())+", -7)"
+					})
+
+			    modelUnder.attr({
+			    	"transform" : "rotate(-" + slopeDegrees + ",0," + height + "), translate("+x(moveModelLabels())+", 15)"
+			    })
+
+			    // Move the points
+					dotContainer.attr("transform", function(d) { return "translate(" + x(d.Predicted) + "," + y(d.Actual) + ")"; });
+
+			}
+
+
+			});
+
+	</script>
+
+</article>
+</body>
+</html>
+
+

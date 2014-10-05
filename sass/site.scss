@@ -1,0 +1,179 @@
+// ============================================= 
+
+//  Base SCSS                
+
+// ============================================= 
+
+
+//  Imports            
+// =============================================
+@import "compass/css3/inline-block";
+@import "partials/mixins";
+@import "partials/type"; 
+@import "partials/variables";
+
+
+
+//  Base styles            
+// =============================================
+
+.graphic-article {
+	margin: 0 auto;
+	max-width: 623px;
+	height: 100%;
+}
+
+.graphic-title {
+	margin-bottom: 20px;
+	font-size: 48px;
+	line-height: 100%;
+	@media (min-width: $smedium) { 
+		font-size: 60px;
+	}
+}
+
+.graphic-dek {
+	display: block;
+	margin: 0;
+	font-weight: 600;
+	font-size: 20px;
+	font-family: $sans;
+	line-height: 120%;
+}
+ 
+#chart {
+	margin-bottom: 10px;
+}
+
+.graphic-copy {
+	margin: 5px 0px 15px;
+	font-size: 14px;
+	line-height: 140%;
+}
+
+.graphic-container {
+	padding: 10px;
+	background-color: $bground;
+	border: 1px solid $light-gray;
+	@media (min-width: $small) {
+		padding: 20px;
+	}
+}
+
+.sources-copy {
+	display: block;
+	margin-bottom: 5px;
+	padding-top: 10px;
+	border-top: 1px solid $light-gray;
+	color: $med-gray;
+	text-align: left;
+	font-size: 11px;
+	line-height: 130%;
+	@media (min-width: $small) {
+		font-size: 12px;
+	}
+}
+
+
+
+
+// SCATTERPLOT
+
+.grid .tick {
+    stroke: $light-gray;
+    stroke-dasharray: 5,5;
+}
+
+.axis-label {
+	font-size: 11px;
+	fill: $med-gray;
+	@media (min-width: $smedium) {
+		font-size: 12px; 
+	}
+}
+
+.tick text {
+	font-size: 11px;
+	fill: $med-gray;
+	@media (min-width: $smedium) {
+		font-size: 12px; 
+	}
+}
+
+.domain { 
+	fill: none; 
+	stroke: $med-gray; 
+	stroke-width: 1; 
+} 
+
+.tooltip {   
+	position: absolute;           
+	font-family: $sans;              
+	padding: 10px;             
+	font-size: 12px;        
+	background: $bground;   
+	border: 1px solid $med-gray;      
+	pointer-events: none;    
+	font-weight: 300;     
+}
+
+.tooltip-title {
+	font-weight: 500;
+}
+
+.tooltip-param {
+	color: $med-gray;
+}
+
+.ital {
+	font-style: italic;
+}
+
+.model-line {
+	stroke: $med-gray;
+	stroke-width: 1;
+	fill: none;
+	stroke-dasharray: 5,5;
+}
+
+.model-line-label {
+	font-size: 11px;
+	@media (min-width: $smedium) {
+		font-size: 12px; 
+	}
+}
+
+.dot {
+	stroke: $bground;
+}
+
+.magnitude {
+	stroke-width: 2;
+	fill: none;
+}
+
+.over {
+	fill: $bground-4;
+	line {
+		stroke: $bground-4;
+	}
+}
+
+.under {
+	fill: $bground-8;
+	line {
+		stroke: $bground-8;
+	}
+}
+
+.dot-label {
+	text-anchor: middle;
+	font-size: 10px;
+	fill: $med-gray;
+	cursor: default;
+}
+
+
+
+
+
